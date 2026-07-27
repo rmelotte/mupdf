@@ -120,6 +120,15 @@ def get_members( type_or_cursor, include_empty=False):
         cursor2 = cursor.underlying_typedef_type.get_declaration()
     else:
         cursor2 = cursor
+    if not cursor2.is_definition():
+        # get_declaration() is not guaranteed to return the defining cursor
+        # - depending on libclang version, it may instead return a
+        # non-defining declaration cursor (e.g. a forward-declaring typedef)
+        # even though a definition exists elsewhere in the TU. Recover the
+        # actual definition cursor if we can find one.
+        definition_cursor2 = cursor2.get_definition()
+        if definition_cursor2 is not None and definition_cursor2.is_definition():
+            cursor2 = definition_cursor2
 
     if 0:
         # Diagnostics to show the difference between
