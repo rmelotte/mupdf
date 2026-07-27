@@ -2535,6 +2535,7 @@ def class_add_iterator( tu, struct_cursor, struct_name, classname, extras, refch
     # <it_begin>.
     if it_begin:
         c = parse.find_name( struct_cursor, it_begin)
+        assert c, f'Failed to find {it_begin=} in {struct_name=} ({struct_cursor.spelling=})'
         assert c.type.kind == state.clang.cindex.TypeKind.POINTER
         it_internal_type = state.get_name_canonical( c.type.get_pointee()).spelling
         it_internal_type = util.clip( it_internal_type, 'struct ')
