@@ -116,7 +116,7 @@ def get_members( type_or_cursor, include_empty=False):
         cursor = type_or_cursor
     else:
         assert 0
-    if cursor.type.kind in (state.clang.cindex.TypeKind.TYPEDEF, state.clang.cindex.TypeKind.ELABORATED):
+    if cursor.kind == state.clang.cindex.CursorKind.TYPEDEF_DECL:
         cursor2 = cursor.underlying_typedef_type.get_declaration()
     else:
         cursor2 = cursor
