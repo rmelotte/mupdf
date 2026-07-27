@@ -252,6 +252,19 @@ def has_refs( tu, type_):
                     if verbose:
                         jlib.log( 'There is a keep() fn for this type so it uses reference counting: {keep_name=}')
                     base_type_cursor = get_base_type( type_).get_declaration()
+                    if not base_type_cursor.is_definition():
+                        # get_declaration() is not guaranteed to return the
+                        # defining cursor when the type is declared in one
+                        # place (e.g. an opaque forward-declaring typedef)
+                        # and defined elsewhere - depending on libclang
+                        # version, it may instead return a non-defining
+                        # declaration cursor even though a definition exists
+                        # in the TU. get_definition() explicitly looks up the
+                        # actual definition cursor, so use it to recover in
+                        # that case.
+                        definition_cursor = base_type_cursor.get_definition()
+                        if definition_cursor is not None and definition_cursor.is_definition():
+                            base_type_cursor = definition_cursor
                     if base_type_cursor.is_definition():
                         if verbose:
                             jlib.log( 'Type definition is available so we look for .refs member: {key=} {type_.spelling=} {fileline(base_type_cursor)=}')
