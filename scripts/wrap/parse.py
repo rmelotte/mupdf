@@ -162,8 +162,27 @@ def get_members( type_or_cursor, include_empty=False):
             for i in ret_type:
                 jlib.log( '    ret_type: {i}')
 
+    children = list(cursor2.get_children())
+    if (cursor2.kind == state.clang.cindex.CursorKind.FIELD_DECL
+            and len(children) == 1
+            and children[0].kind in (
+                state.clang.cindex.CursorKind.STRUCT_DECL,
+                state.clang.cindex.CursorKind.UNION_DECL,
+                )
+            ):
+        # <cursor2> is a field whose type is an anonymous struct/union
+        # defined inline (e.g. 'union { ... } u;'). A normal field with a
+        # named member type has no such child, so seeing exactly one
+        # STRUCT_DECL/UNION_DECL child here means some libclang versions are
+        # giving us the anonymous struct/union's own declaration cursor
+        # (with a synthesised, non-empty .spelling describing the anonymous
+        # type, e.g. '(unnamed union at ...)'), instead of directly giving
+        # us that struct/union's members. Descend into it to find the real
+        # members.
+        children = list(children[0].get_children())
+
     ret = list()
-    for cursor3 in cursor2.get_children():
+    for cursor3 in children:
         if include_empty or cursor3.spelling:
             ret.append(cursor3)
     if not ret:
